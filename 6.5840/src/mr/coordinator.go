@@ -81,6 +81,29 @@ func (c *Coordinator) PullTask(args *GetTaskArgs, reply *Task) error {
 	return nil
 }
 
+func (c *Coordinator) MarkFinished(args *ReportFinishedArgs, reply *ReportFinishedReply) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	switch c.TaskInfoMap[args.TUID].Status {
+	case Processing:
+		{
+			fmt.Println("[Info]task ", *c.TaskInfoMap[args.TUID].TaskAddr, " is done")
+		}
+	case Waiting:
+		{
+			fmt.Println("[Error]task ", *c.TaskInfoMap[args.TUID].TaskAddr, " is done, without processing!!!")
+		}
+	case Done:
+		{
+			fmt.Println("[Warnning]task ", *c.TaskInfoMap[args.TUID].TaskAddr, " is done again!")
+		}
+	default:
+		panic(1)
+	}
+	c.TaskInfoMap[args.TUID].Status = Done
+	return nil
+}
+
 func (c *Coordinator) checkStageOver() bool {
 	for _, taskInfo := range c.TaskInfoMap {
 		if taskInfo.Status != Done {
@@ -91,6 +114,7 @@ func (c *Coordinator) checkStageOver() bool {
 }
 
 func (c *Coordinator) NextStage() {
+	fmt.Println("NEXT STAGE!")
 	switch c.CurrentStage {
 	case MapStage:
 		{
@@ -149,7 +173,9 @@ func MakeCoordinator(files []string, nReduce int) *Coordinator {
 		UTID:              0,
 		mu:                new(sync.Mutex),
 	}
-
+	c.MakeMapTasks(files)
+	fmt.Println("Map Tasks initializing complete!")
+	fmt.Println(c.TaskInfoMap)
 	c.server()
 	return &c
 }

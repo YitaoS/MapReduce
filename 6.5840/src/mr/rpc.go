@@ -28,6 +28,13 @@ type ExampleReply struct {
 type GetTaskArgs struct {
 }
 
+type ReportFinishedArgs struct {
+	TUID int
+}
+
+type ReportFinishedReply struct {
+}
+
 // Cook up a unique-ish UNIX-domain socket name
 // in /var/tmp, for the coordinator.
 // Can't use the current directory since

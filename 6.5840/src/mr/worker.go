@@ -1,10 +1,14 @@
 package mr
 
 import (
+	"encoding/json"
 	"fmt"
 	"hash/fnv"
+	"io"
 	"log"
 	"net/rpc"
+	"os"
+	"strconv"
 )
 
 // Map functions return a slice of KeyValue.
@@ -32,7 +36,8 @@ GetTaskLoop:
 		switch task.Type {
 		case MapType:
 			{
-				//todo
+				DoMapTask(&task, mapf)
+				ReportFinished(&task)
 				break GetTaskLoop
 			}
 		case WaitType:
@@ -52,6 +57,41 @@ GetTaskLoop:
 
 }
 
+func DoMapTask(task *Task, mapf func(string, string) []KeyValue) {
+	intermediate := []KeyValue{}
+	for _, filename := range task.TargetFiles {
+		file, err := os.Open(filename)
+		if err != nil {
+			fmt.Printf("[Error] Cannot open %v!", filename)
+		}
+		content, err := io.ReadAll(file)
+		if err != nil {
+			fmt.Printf("[Error] Cannot read %v", filename)
+		}
+		file.Close()
+		kva := mapf(filename, string(content))
+		intermediate = append(intermediate, kva...)
+	}
+	HashedKVA := make([][]KeyValue, task.ReduceNum)
+	for _, kv := range intermediate {
+		HashedKVA[ihash(kv.Key)%task.ReduceNum] = append(HashedKVA[ihash(kv.Key)%task.ReduceNum], kv)
+	}
+
+	os.Mkdir("./mr-tmp", 0755)
+	for i := 0; i < task.ReduceNum; i++ {
+		oname := "./mr-tmp/mr-tmp-" + strconv.Itoa(task.UTID) + "-" + strconv.Itoa(i)
+		ofile, _ := os.Create(oname)
+		enc := json.NewEncoder(ofile)
+		for _, kv := range HashedKVA[i] {
+			enc.Encode(kv)
+		}
+		ofile.Close()
+	}
+
+}
+
+// RPCs
+
 func GetTask() *Task {
 	args := GetTaskArgs{}
 	reply := Task{}
@@ -64,6 +104,19 @@ func GetTask() *Task {
 		fmt.Println("[Error] rpc Coordinator.PullTask failed!")
 	}
 	return &reply
+}
+
+func ReportFinished(task *Task) {
+	args := ReportFinishedArgs{TUID: task.UTID}
+	reply := ReportFinishedReply{}
+
+	ok := call("Coordinator.MarkFinished", &args, &reply)
+	if ok {
+		fmt.Println("[Info] rpc Coordinator.MarkFinished successfully executed")
+		fmt.Println("[Info] reply Task:", reply)
+	} else {
+		fmt.Println("[Error] rpc Coordinator.MarkFinished failed!")
+	}
 }
 
 // example function to show how to make an RPC call to the coordinator.
