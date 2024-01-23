@@ -57,7 +57,7 @@ func (c *Coordinator) PullTask(args *GetTaskArgs, reply *Task) error {
 			if len(c.MapTaskChannel) > 0 {
 				*reply = *<-c.MapTaskChannel
 				taskInfo, ok := c.TaskInfoMap[reply.UTID]
-				if !ok || taskInfo == (TaskInfo{}) || taskInfo.Status != Waiting {
+				if !ok || taskInfo == nil || taskInfo.Status != Waiting {
 					fmt.Println("[Error]", reply, "does not exist in TaskInfoMap or Assigned to worker repeatedly!")
 					panic(1)
 				}
@@ -144,7 +144,7 @@ func MakeCoordinator(files []string, nReduce int) *Coordinator {
 		CurrentStage:      MapStage,
 		MapTaskChannel:    make(chan *Task, len(files)),
 		ReduceTaskChannel: make(chan *Task, nReduce),
-		TaskInfoMap:       make(map[int]TaskInfo, len(files)+nReduce),
+		TaskInfoMap:       make(map[int]*TaskInfo, len(files)+nReduce),
 		ReduceNum:         nReduce,
 		UTID:              0,
 		mu:                new(sync.Mutex),
