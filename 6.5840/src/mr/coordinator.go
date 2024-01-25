@@ -7,6 +7,9 @@ import (
 	"net/http"
 	"net/rpc"
 	"os"
+	"regexp"
+	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -19,6 +22,56 @@ type Coordinator struct {
 	ReduceNum         int
 	UTID              int
 	mu                *sync.Mutex
+}
+
+func (c *Coordinator) MakeReduceTasks() {
+	taskAddrList := make([]*Task, c.ReduceNum)
+
+	dirPath := "./mr-tmp"
+	files, err := os.ReadDir(dirPath)
+	if err != nil {
+		fmt.Println("[Error] Cannot read the directory:", err)
+		panic(1)
+	}
+	for _, file := range files {
+		re := regexp.MustCompile(`^.*-(\d+)$`)
+		matches := re.FindStringSubmatch(file.Name())
+		if strings.HasPrefix(file.Name(), "mr-tmp-") && len(matches) == 2 {
+			integerPart, err := strconv.Atoi(matches[1])
+			if err != nil {
+				fmt.Println("[Warning] Cannot transform the file:", file.Name(), err)
+				continue
+			}
+			if integerPart >= c.ReduceNum {
+				fmt.Println("[Error] Reduce partition number is too large! file name:", file.Name(), " Reduce number:", c.ReduceNum)
+				continue
+			}
+			if taskAddrList[integerPart] == nil {
+				utid := c.getNewUTID()
+				task := Task{
+					UTID:        utid,
+					Type:        ReduceType,
+					TargetFiles: []string{file.Name()},
+					ReduceNum:   c.ReduceNum,
+				}
+				taskAddrList[integerPart] = &task
+				taskInfo := TaskInfo{
+					Status:   Waiting,
+					TaskAddr: &task,
+				}
+				c.TaskInfoMap[utid] = &taskInfo
+			} else {
+				taskAddrList[integerPart].TargetFiles = append(taskAddrList[integerPart].TargetFiles, file.Name())
+			}
+
+		}
+	}
+	for _, taskAddr := range taskAddrList {
+		if taskAddr == nil {
+			continue
+		}
+		c.ReduceTaskChannel <- taskAddr
+	}
 }
 
 func (c *Coordinator) MakeMapTasks(files []string) {
@@ -69,10 +122,23 @@ func (c *Coordinator) PullTask(args *GetTaskArgs, reply *Task) error {
 				}
 			}
 		}
-	// case ReduceStage:
-	// 	{
-	// 		*reply = *<-c.ReduceTaskChannel
-	// 	}
+	case ReduceStage:
+		{
+			if len(c.ReduceTaskChannel) > 0 {
+				*reply = *<-c.ReduceTaskChannel
+				taskInfo, ok := c.TaskInfoMap[reply.UTID]
+				if !ok || taskInfo == nil || taskInfo.Status != Waiting {
+					fmt.Println("[Error]", reply, "does not exist in TaskInfoMap or Assigned to worker repeatedly!")
+					panic(1)
+				}
+				taskInfo.Status = Processing
+			} else {
+				reply.Type = WaitType
+				if c.checkStageOver() {
+					c.NextStage()
+				}
+			}
+		}
 	default:
 		{
 			reply.Type = ExitType
@@ -104,6 +170,7 @@ func (c *Coordinator) MarkFinished(args *ReportFinishedArgs, reply *ReportFinish
 	return nil
 }
 
+// Check if current stage is over
 func (c *Coordinator) checkStageOver() bool {
 	for _, taskInfo := range c.TaskInfoMap {
 		if taskInfo.Status != Done {
@@ -113,16 +180,20 @@ func (c *Coordinator) checkStageOver() bool {
 	return true
 }
 
+// Move the coordinator to next task stage
 func (c *Coordinator) NextStage() {
-	fmt.Println("NEXT STAGE!")
+	fmt.Print("NEXT STAGE:")
 	switch c.CurrentStage {
 	case MapStage:
 		{
-			c.CurrentStage = ExitStage
+			c.MakeReduceTasks()
+			c.CurrentStage = ReduceStage
+			fmt.Println("ReduceStage")
 		}
 	case ReduceStage:
 		{
 			c.CurrentStage = ExitStage
+			fmt.Println("ExitStage")
 		}
 	}
 }

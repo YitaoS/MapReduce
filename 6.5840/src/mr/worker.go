@@ -40,6 +40,10 @@ GetTaskLoop:
 				ReportFinished(&task)
 				break GetTaskLoop
 			}
+		case ReduceType:
+			{
+				break GetTaskLoop
+			}
 		case WaitType:
 			{
 				//todo
