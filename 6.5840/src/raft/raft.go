@@ -70,7 +70,7 @@ type Raft struct {
 	// state a Raft server must maintain.
 	currentTerm int32
 	votedFor    int
-	cntVote     int32
+	cntVoted    int32
 	state       int32
 	timer       *time.Timer
 }
@@ -323,7 +323,7 @@ func Make(peers []*labrpc.ClientEnd, me int,
 
 func (rf *Raft) startElection() {
 	rf.votedFor = rf.me
-	rf.cntVote = 1
+	rf.cntVoted = 1
 	atomic.AddInt32(&rf.currentTerm, 1)
 
 	args := RequestVoteArgs{Term: rf.currentTerm, CandidateId: rf.me}
@@ -336,7 +336,12 @@ func (rf *Raft) startElection() {
 			reply := RequestVoteReply{}
 			if rf.state == STATE_CANDIDATE && rf.sendRequestVote(server, &args, &reply) {
 				if reply.VoteGranted {
-					atomic.AddInt32(&rf.cntVote, 1)
+					atomic.AddInt32(&rf.cntVoted, 1)
+				} else {
+					if reply.Term > rf.currentTerm {
+						atomic.SwapInt32(&rf.currentTerm, reply.Term)
+						rf.updateState(STATE_FOLLOWER)
+					}
 				}
 			} else {
 				getLogger().Log(fmt.Sprintf("[Error] Cannot send request vate from %d to %d", rf.me, server))
