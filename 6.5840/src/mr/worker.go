@@ -2,13 +2,17 @@ package mr
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"hash/fnv"
 	"io"
 	"log"
 	"net/rpc"
 	"os"
+	"regexp"
+	"sort"
 	"strconv"
+	"time"
 )
 
 // Map functions return a slice of KeyValue.
@@ -16,6 +20,14 @@ type KeyValue struct {
 	Key   string
 	Value string
 }
+
+// for sorting by key.
+type ByKey []KeyValue
+
+// for sorting by key.
+func (a ByKey) Len() int           { return len(a) }
+func (a ByKey) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByKey) Less(i, j int) bool { return a[i].Key < a[j].Key }
 
 // use ihash(key) % NReduce to choose the reduce
 // task number for each KeyValue emitted by Map.
@@ -38,16 +50,16 @@ GetTaskLoop:
 			{
 				DoMapTask(&task, mapf)
 				ReportFinished(&task)
-				break GetTaskLoop
 			}
 		case ReduceType:
 			{
-				break GetTaskLoop
+				DoReduceTask(&task, reducef)
+				ReportFinished(&task)
 			}
 		case WaitType:
 			{
 				//todo
-				break GetTaskLoop
+				time.Sleep(time.Second)
 			}
 		case ExitType:
 			{
@@ -59,6 +71,85 @@ GetTaskLoop:
 	// uncomment to send the Example RPC to the coordinator.
 	// CallExample()
 
+}
+
+func getReduceIndex(fileName string) (string, error) {
+	re := regexp.MustCompile(`^.*-(\d+)$`)
+	matches := re.FindStringSubmatch(fileName)
+	if len(matches) != 2 {
+		return "", errors.New("[Error] Invalid task file:" + fileName)
+	}
+	return matches[1], nil
+}
+
+func DoReduceTask(task *Task, reducef func(string, []string) string) {
+	if len(task.TargetFiles) == 0 {
+		fmt.Println("[Error] Empty task!")
+		return
+	}
+	reduceIndexStr, err := getReduceIndex(task.TargetFiles[0])
+	if err != nil {
+		fmt.Print(err.Error())
+		return
+	}
+
+	kva := *shuffleKVArray(&task.TargetFiles)
+
+	oname := "mr-out-" + reduceIndexStr
+	ofile, _ := os.Create(oname)
+
+	//
+	// call Reduce on each distinct key in kva[],
+	// and print the result to mr-out-0.
+	//
+	i := 0
+	for i < len(kva) {
+		j := i + 1
+		for j < len(kva) && kva[j].Key == kva[i].Key {
+			j++
+		}
+		values := []string{}
+		for k := i; k < j; k++ {
+			values = append(values, kva[k].Value)
+		}
+		output := reducef(kva[i].Key, values)
+
+		// this is the correct format for each line of Reduce output.
+		fmt.Fprintf(ofile, "%v %v\n", kva[i].Key, output)
+
+		i = j
+	}
+
+	ofile.Close()
+}
+
+func shuffleKVArray(files *[]string) *[]KeyValue {
+	kva := []KeyValue{}
+	for _, filename := range *files {
+		file, err := os.Open(filename)
+		if err != nil {
+			fmt.Printf("[Error] Cannot open %v!", filename)
+			panic(1)
+		}
+		defer file.Close()
+
+		decoder := json.NewDecoder(file)
+		kv := KeyValue{}
+	ReadIntermediateFileLoop:
+		for {
+			err := decoder.Decode((&kv))
+			if err != nil {
+				if err == io.EOF {
+					break ReadIntermediateFileLoop
+				}
+				fmt.Println("[Error] Cannot decoding JSON:", err)
+				break ReadIntermediateFileLoop
+			}
+			kva = append(kva, kv)
+		}
+	}
+	sort.Sort(ByKey(kva))
+	return &kva
 }
 
 func DoMapTask(task *Task, mapf func(string, string) []KeyValue) {
@@ -81,11 +172,11 @@ func DoMapTask(task *Task, mapf func(string, string) []KeyValue) {
 		HashedKVA[ihash(kv.Key)%task.ReduceNum] = append(HashedKVA[ihash(kv.Key)%task.ReduceNum], kv)
 	}
 
-	os.Mkdir("./mr-tmp", 0755)
 	for i := 0; i < task.ReduceNum; i++ {
-		oname := "./mr-tmp/mr-tmp-" + strconv.Itoa(task.UTID) + "-" + strconv.Itoa(i)
+		oname := "mr-tmp-" + strconv.Itoa(task.UTID) + "-" + strconv.Itoa(i)
 		ofile, _ := os.Create(oname)
 		enc := json.NewEncoder(ofile)
+		sort.Sort(ByKey(HashedKVA[i]))
 		for _, kv := range HashedKVA[i] {
 			enc.Encode(kv)
 		}
@@ -102,8 +193,8 @@ func GetTask() *Task {
 
 	ok := call("Coordinator.PullTask", &args, &reply)
 	if ok {
-		fmt.Println("[Info] rpc Coordinator.PullTask successfully executed")
-		fmt.Println("[Info] reply Task:", reply)
+		//fmt.Println("[Info] rpc Coordinator.PullTask successfully executed")
+		//fmt.Println("[Info] reply Task:", reply)
 	} else {
 		fmt.Println("[Error] rpc Coordinator.PullTask failed!")
 	}
@@ -116,8 +207,8 @@ func ReportFinished(task *Task) {
 
 	ok := call("Coordinator.MarkFinished", &args, &reply)
 	if ok {
-		fmt.Println("[Info] rpc Coordinator.MarkFinished successfully executed")
-		fmt.Println("[Info] reply Task:", reply)
+		//fmt.Println("[Info] rpc Coordinator.MarkFinished successfully executed")
+		//fmt.Println("[Info] reply Task:", reply)
 	} else {
 		fmt.Println("[Error] rpc Coordinator.MarkFinished failed!")
 	}

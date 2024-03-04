@@ -19,7 +19,9 @@ package raft
 
 import (
 	//	"bytes"
+	"fmt"
 	"math/rand"
+	"os"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -28,6 +30,11 @@ import (
 	"6.5840/labrpc"
 )
 
+const (
+	STATE_FOLLOWER = iota
+	STATE_CANDIDATE
+	STATE_LEADER
+)
 
 // as each Raft peer becomes aware that successive log entries are
 // committed, the peer should send an ApplyMsg to the service (or
@@ -61,7 +68,11 @@ type Raft struct {
 	// Your data here (2A, 2B, 2C).
 	// Look at the paper's Figure 2 for a description of what
 	// state a Raft server must maintain.
-
+	currentTerm int32
+	votedFor    int
+	cntVote     int32
+	state       int32
+	timer       *time.Timer
 }
 
 // return currentTerm and whether this server
@@ -92,7 +103,6 @@ func (rf *Raft) persist() {
 	// rf.persister.Save(raftstate, nil)
 }
 
-
 // restore previously persisted state.
 func (rf *Raft) readPersist(data []byte) {
 	if data == nil || len(data) < 1 { // bootstrap without any state?
@@ -113,7 +123,6 @@ func (rf *Raft) readPersist(data []byte) {
 	// }
 }
 
-
 // the service says it has created a snapshot that has
 // all info up to and including index. this means the
 // service no longer needs the log through (and including)
@@ -123,22 +132,66 @@ func (rf *Raft) Snapshot(index int, snapshot []byte) {
 
 }
 
-
 // example RequestVote RPC arguments structure.
 // field names must start with capital letters!
 type RequestVoteArgs struct {
 	// Your data here (2A, 2B).
+	Term         int32
+	CandidateId  int
+	LastLogIndex int
+	LastLogTerm  int
 }
 
 // example RequestVote RPC reply structure.
 // field names must start with capital letters!
 type RequestVoteReply struct {
 	// Your data here (2A).
+	Term        int32
+	VoteGranted bool
 }
 
 // example RequestVote RPC handler.
 func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 	// Your code here (2A, 2B).
+	rf.mu.Lock()
+	if args.Term < rf.currentTerm {
+		reply.VoteGranted = false
+	} else {
+		reply.VoteGranted = true
+	}
+	reply.Term = rf.currentTerm
+	rf.mu.Unlock()
+}
+
+type AppendEntriesArgs struct {
+	// Your data here (2A, 2B).
+	Term         int
+	LeaderId     int
+	PrevLogIndex int
+	PrevLogTerm  int
+	// entries[] log entries to store (empty for heartbeat;may send more than one for efficiency)
+	LeaderCommit int
+}
+
+// example RequestVote RPC reply structure.
+// field names must start with capital letters!
+type AppendEntriesReply struct {
+	// Your data here (2A).
+	Term    int
+	Success bool
+}
+
+// example RequestVote RPC handler.
+func (rf *Raft) AppendEntries(args *RequestVoteArgs, reply *RequestVoteReply) {
+	// Your code here (2A, 2B).
+	rf.mu.Lock()
+	if args.Term < rf.currentTerm {
+		reply.VoteGranted = false
+	} else {
+		reply.VoteGranted = true
+	}
+	reply.Term = rf.currentTerm
+	rf.mu.Unlock()
 }
 
 // example code to send a RequestVote RPC to a server.
@@ -173,7 +226,6 @@ func (rf *Raft) sendRequestVote(server int, args *RequestVoteArgs, reply *Reques
 	return ok
 }
 
-
 // the service using Raft (e.g. a k/v server) wants to start
 // agreement on the next command to be appended to Raft's log. if this
 // server isn't the leader, returns false. otherwise start the
@@ -192,7 +244,6 @@ func (rf *Raft) Start(command interface{}) (int, int, bool) {
 	isLeader := true
 
 	// Your code here (2B).
-
 
 	return index, term, isLeader
 }
@@ -222,7 +273,6 @@ func (rf *Raft) ticker() {
 		// Your code here (2A)
 		// Check if a leader election should be started.
 
-
 		// pause for a random amount of time between 50 and 350
 		// milliseconds.
 		ms := 50 + (rand.Int63() % 300)
@@ -247,6 +297,20 @@ func Make(peers []*labrpc.ClientEnd, me int,
 	rf.me = me
 
 	// Your initialization code here (2A, 2B, 2C).
+	rf.timer = time.NewTimer(randTime())
+	for {
+		switch atomic.LoadInt32(&rf.state) {
+		case STATE_FOLLOWER:
+			select {
+			case <-rf.timer.C:
+				rf.updateState(STATE_CANDIDATE)
+			}
+		case STATE_CANDIDATE:
+			rf.timer.Reset(randTime())
+			rf.startElection()
+		case STATE_LEADER:
+		}
+	}
 
 	// initialize from state persisted before a crash
 	rf.readPersist(persister.ReadRaftState())
@@ -254,6 +318,56 @@ func Make(peers []*labrpc.ClientEnd, me int,
 	// start ticker goroutine to start elections
 	go rf.ticker()
 
-
 	return rf
+}
+
+func (rf *Raft) startElection() {
+	rf.votedFor = rf.me
+	rf.cntVote = 1
+	atomic.AddInt32(&rf.currentTerm, 1)
+
+	args := RequestVoteArgs{Term: rf.currentTerm, CandidateId: rf.me}
+	for i := range rf.peers {
+		if i == rf.me {
+			continue
+		}
+
+		go func(server int) {
+			reply := RequestVoteReply{}
+			if rf.state == STATE_CANDIDATE && rf.sendRequestVote(server, &args, &reply) {
+				if reply.VoteGranted {
+					atomic.AddInt32(&rf.cntVote, 1)
+				}
+			} else {
+				getLogger().Log(fmt.Sprintf("[Error] Cannot send request vate from %d to %d", rf.me, server))
+				os.Exit(1)
+			}
+		}(i)
+	}
+}
+
+func (rf *Raft) updateState(state int32) {
+	rf.mu.Lock()
+	defer rf.mu.Unlock()
+	if rf.state == state {
+		return
+	}
+	old_state := rf.state
+	switch state {
+	case STATE_FOLLOWER:
+		rf.state = STATE_FOLLOWER
+	case STATE_CANDIDATE:
+		rf.state = STATE_CANDIDATE
+	case STATE_LEADER:
+		rf.state = STATE_LEADER
+	default:
+		getLogger().Log(fmt.Sprintf("[Error] unknown state!%d \nCurrent Term %d Current Machine %d Current State %d", state, rf.currentTerm, rf.me, rf.state))
+		os.Exit(1)
+	}
+	getLogger().Log(fmt.Sprintf("[Info] In term %d, machine %d update state from %d to %d", rf.currentTerm, rf.me, old_state, state))
+}
+
+func randTime() time.Duration {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	return time.Microsecond * time.Duration((r.Intn(150) + 350))
 }

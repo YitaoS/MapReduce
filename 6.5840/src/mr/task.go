@@ -1,5 +1,7 @@
 package mr
 
+import "time"
+
 type Task struct {
 	UTID        int
 	Type        TaskType
@@ -8,8 +10,9 @@ type Task struct {
 }
 
 type TaskInfo struct {
-	Status   TaskStatus
-	TaskAddr *Task
+	Status    TaskStatus
+	TaskAddr  *Task
+	StartTime time.Time
 }
 
 type TaskType int

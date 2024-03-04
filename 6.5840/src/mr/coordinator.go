@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 type Coordinator struct {
@@ -27,10 +28,10 @@ type Coordinator struct {
 func (c *Coordinator) MakeReduceTasks() {
 	taskAddrList := make([]*Task, c.ReduceNum)
 
-	dirPath := "./mr-tmp"
+	dirPath := "."
 	files, err := os.ReadDir(dirPath)
 	if err != nil {
-		fmt.Println("[Error] Cannot read the directory:", err)
+		getLogger().Log(fmt.Sprintln("[Error] Cannot read the directory:", err))
 		panic(1)
 	}
 	for _, file := range files {
@@ -39,11 +40,11 @@ func (c *Coordinator) MakeReduceTasks() {
 		if strings.HasPrefix(file.Name(), "mr-tmp-") && len(matches) == 2 {
 			integerPart, err := strconv.Atoi(matches[1])
 			if err != nil {
-				fmt.Println("[Warning] Cannot transform the file:", file.Name(), err)
+				getLogger().Log(fmt.Sprintln("[Warning] Cannot transform the file:", file.Name(), err))
 				continue
 			}
 			if integerPart >= c.ReduceNum {
-				fmt.Println("[Error] Reduce partition number is too large! file name:", file.Name(), " Reduce number:", c.ReduceNum)
+				getLogger().Log(fmt.Sprintln("[Error] Reduce partition number is too large! file name:", file.Name(), " Reduce number:", c.ReduceNum))
 				continue
 			}
 			if taskAddrList[integerPart] == nil {
@@ -110,10 +111,15 @@ func (c *Coordinator) PullTask(args *GetTaskArgs, reply *Task) error {
 			if len(c.MapTaskChannel) > 0 {
 				*reply = *<-c.MapTaskChannel
 				taskInfo, ok := c.TaskInfoMap[reply.UTID]
-				if !ok || taskInfo == nil || taskInfo.Status != Waiting {
-					fmt.Println("[Error]", reply, "does not exist in TaskInfoMap or Assigned to worker repeatedly!")
+				if !ok || taskInfo == nil {
+					getLogger().Log(fmt.Sprintln("[Error]", reply, "does not exist in TaskInfoMap or Assigned to worker repeatedly!"))
 					panic(1)
 				}
+				if taskInfo.Status == Done {
+					reply.Type = WaitType
+					return nil
+				}
+				taskInfo.StartTime = time.Now()
 				taskInfo.Status = Processing
 			} else {
 				reply.Type = WaitType
@@ -127,10 +133,15 @@ func (c *Coordinator) PullTask(args *GetTaskArgs, reply *Task) error {
 			if len(c.ReduceTaskChannel) > 0 {
 				*reply = *<-c.ReduceTaskChannel
 				taskInfo, ok := c.TaskInfoMap[reply.UTID]
-				if !ok || taskInfo == nil || taskInfo.Status != Waiting {
-					fmt.Println("[Error]", reply, "does not exist in TaskInfoMap or Assigned to worker repeatedly!")
+				if !ok || taskInfo == nil {
+					getLogger().Log(fmt.Sprintln("[Error]", reply, "does not exist in TaskInfoMap or Assigned to worker repeatedly!"))
 					panic(1)
 				}
+				if taskInfo.Status == Done {
+					reply.Type = WaitType
+					return nil
+				}
+				taskInfo.StartTime = time.Now()
 				taskInfo.Status = Processing
 			} else {
 				reply.Type = WaitType
@@ -153,15 +164,15 @@ func (c *Coordinator) MarkFinished(args *ReportFinishedArgs, reply *ReportFinish
 	switch c.TaskInfoMap[args.TUID].Status {
 	case Processing:
 		{
-			fmt.Println("[Info]task ", *c.TaskInfoMap[args.TUID].TaskAddr, " is done")
+			getLogger().Log(fmt.Sprintln("[Info]task ", *c.TaskInfoMap[args.TUID].TaskAddr, " is done"))
 		}
 	case Waiting:
 		{
-			fmt.Println("[Error]task ", *c.TaskInfoMap[args.TUID].TaskAddr, " is done, without processing!!!")
+			getLogger().Log(fmt.Sprintln("[Error]task ", *c.TaskInfoMap[args.TUID].TaskAddr, " is done, without processing!!!"))
 		}
 	case Done:
 		{
-			fmt.Println("[Warnning]task ", *c.TaskInfoMap[args.TUID].TaskAddr, " is done again!")
+			getLogger().Log(fmt.Sprintln("[Warnning]task ", *c.TaskInfoMap[args.TUID].TaskAddr, " is done again!"))
 		}
 	default:
 		panic(1)
@@ -182,18 +193,18 @@ func (c *Coordinator) checkStageOver() bool {
 
 // Move the coordinator to next task stage
 func (c *Coordinator) NextStage() {
-	fmt.Print("NEXT STAGE:")
+	getLogger().Log(fmt.Sprint("NEXT STAGE:"))
 	switch c.CurrentStage {
 	case MapStage:
 		{
 			c.MakeReduceTasks()
 			c.CurrentStage = ReduceStage
-			fmt.Println("ReduceStage")
+			getLogger().Log(fmt.Sprintln("ReduceStage"))
 		}
 	case ReduceStage:
 		{
 			c.CurrentStage = ExitStage
-			fmt.Println("ExitStage")
+			getLogger().Log(fmt.Sprintln("ExitStage"))
 		}
 	}
 }
@@ -226,6 +237,9 @@ func (c *Coordinator) Done() bool {
 	ret := false
 
 	// Your code here.
+	if c.CurrentStage == ExitStage {
+		ret = true
+	}
 
 	return ret
 }
@@ -245,8 +259,33 @@ func MakeCoordinator(files []string, nReduce int) *Coordinator {
 		mu:                new(sync.Mutex),
 	}
 	c.MakeMapTasks(files)
-	fmt.Println("Map Tasks initializing complete!")
-	fmt.Println(c.TaskInfoMap)
+	getLogger().Log(fmt.Sprintln("Map Tasks initializing complete!"))
+	getLogger().Log(fmt.Sprintln(c.TaskInfoMap))
 	c.server()
+	go testFailureTasksPeriodiclly(&c)
 	return &c
+}
+
+// goroutine to test failure tasks
+func testFailureTasksPeriodiclly(c *Coordinator) {
+	ticker := time.NewTicker(2 * time.Second)
+FailureCheckLoop:
+	for range ticker.C {
+		c.mu.Lock()
+		if c.CurrentStage == ExitStage {
+			c.mu.Unlock()
+			break FailureCheckLoop
+		}
+		for _, taskInfo := range c.TaskInfoMap {
+			if taskInfo.Status == Processing && time.Since(taskInfo.StartTime) > 10*time.Second {
+				getLogger().Log(fmt.Sprintln("[Warning] Task:", *taskInfo.TaskAddr, " has lauched for ", time.Since(taskInfo.StartTime), ". Restarting it!"))
+				if taskInfo.TaskAddr.Type == MapType {
+					c.MapTaskChannel <- taskInfo.TaskAddr
+				} else {
+					c.ReduceTaskChannel <- taskInfo.TaskAddr
+				}
+			}
+		}
+		c.mu.Unlock()
+	}
 }
