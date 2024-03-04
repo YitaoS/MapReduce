@@ -244,3 +244,176 @@
 [40432-03-04 03:32:50] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 30, mechine 1 send request vote to machine 2
 [40432-03-04 03:32:50] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 30, mechine 1 send request vote to machine 0
 [40432-03-04 03:32:50] [Func 6.5840/raft.(*Raft).startElection.func1] [Error] Cannot send request vote from 1 to 0, current state is 1
+[40458-03-04 03:58:41] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 0, machine 1 update state from 0 to 1
+[40458-03-04 03:58:41] [Func 6.5840/raft.(*Raft).ticker] [info] 1 starts election
+[40458-03-04 03:58:41] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 1, mechine 1 send request vote to machine 0
+[40458-03-04 03:58:41] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 1, mechine 1 send request vote to machine 2
+[40458-03-04 03:58:41] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:41] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:41] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 1, machine 0 update state from 0 to 1
+[40458-03-04 03:58:41] [Func 6.5840/raft.(*Raft).ticker] [info] 0 starts election
+[40458-03-04 03:58:41] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 2, mechine 0 send request vote to machine 2
+[40458-03-04 03:58:41] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 2, mechine 0 send request vote to machine 1
+[40458-03-04 03:58:41] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 1, machine 2 update state from 0 to 1
+[40458-03-04 03:58:41] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 2, machine 2 update state from 1 to 0
+[40458-03-04 03:58:41] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 2, machine 1 update state from 1 to 0
+[40458-03-04 03:58:41] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:41] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 2, mechine 1 voted to machine 0
+[40458-03-04 03:58:41] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:41] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 2, mechine 2 voted to machine 0
+[40458-03-04 03:58:41] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 2, machine 0 update state from 1 to 2
+[40458-03-04 03:58:41] [Func 6.5840/raft.(*Raft).ticker] [info] 0 win election!
+[40458-03-04 03:58:46] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 0, machine 2 update state from 0 to 1
+[40458-03-04 03:58:46] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 0, machine 0 update state from 0 to 1
+[40458-03-04 03:58:46] [Func 6.5840/raft.(*Raft).ticker] [info] 2 starts election
+[40458-03-04 03:58:46] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 1, mechine 2 send request vote to machine 1
+[40458-03-04 03:58:46] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 1, mechine 2 send request vote to machine 0
+[40458-03-04 03:58:46] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:46] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 1, machine 0 update state from 1 to 0
+[40458-03-04 03:58:46] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:46] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 1, mechine 0 voted to machine 2
+[40458-03-04 03:58:46] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 1, machine 1 update state from 0 to 1
+[40458-03-04 03:58:46] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 1, machine 0 update state from 0 to 1
+[40458-03-04 03:58:46] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 1, machine 2 update state from 1 to 2
+[40458-03-04 03:58:46] [Func 6.5840/raft.(*Raft).ticker] [info] 2 win election!
+[40458-03-04 03:58:47] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 1, machine 0 update state from 1 to 0
+[40458-03-04 03:58:47] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 1, machine 1 update state from 1 to 0
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 0, machine 5 update state from 0 to 1
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 0, machine 2 update state from 0 to 1
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 0, machine 3 update state from 0 to 1
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 0, machine 0 update state from 0 to 1
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 0, machine 6 update state from 0 to 1
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 0, machine 4 update state from 0 to 1
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 0, machine 1 update state from 0 to 1
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).ticker] [info] 4 starts election
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 1, mechine 4 send request vote to machine 6
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 1, mechine 4 send request vote to machine 0
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 1, mechine 4 send request vote to machine 1
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 1, mechine 4 send request vote to machine 3
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 1, mechine 4 send request vote to machine 5
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 1, mechine 4 send request vote to machine 2
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 1, machine 6 update state from 1 to 0
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 1, machine 0 update state from 1 to 0
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 1, machine 1 update state from 1 to 0
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 1, machine 3 update state from 1 to 0
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 1, machine 5 update state from 1 to 0
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 1, machine 2 update state from 1 to 0
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 1, mechine 6 voted to machine 4
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 1, mechine 0 voted to machine 4
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 1, mechine 1 voted to machine 4
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 1, mechine 3 voted to machine 4
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 1, mechine 5 voted to machine 4
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 1, mechine 2 voted to machine 4
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 1, machine 3 update state from 0 to 1
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 1, machine 5 update state from 0 to 1
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 1, machine 6 update state from 0 to 1
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 1, machine 0 update state from 0 to 1
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 1, machine 2 update state from 0 to 1
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 1, machine 1 update state from 0 to 1
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).ticker] [info] 5 starts election
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 2, mechine 5 send request vote to machine 6
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 2, machine 6 update state from 1 to 0
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 2, mechine 6 voted to machine 5
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 2, mechine 5 send request vote to machine 2
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 2, mechine 5 send request vote to machine 0
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 2, mechine 5 send request vote to machine 1
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 2, mechine 5 send request vote to machine 3
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 2, mechine 5 send request vote to machine 4
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 2, machine 2 update state from 1 to 0
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 2, machine 0 update state from 1 to 0
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 2, machine 1 update state from 1 to 0
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 2, machine 3 update state from 1 to 0
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 2, machine 4 update state from 1 to 0
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 2, mechine 2 voted to machine 5
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 2, mechine 0 voted to machine 5
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 2, mechine 1 voted to machine 5
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 2, mechine 3 voted to machine 5
+[40458-03-04 03:58:51] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 2, mechine 4 voted to machine 5
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 2, machine 2 update state from 0 to 1
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 2, machine 4 update state from 0 to 1
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).ticker] [info] 2 starts election
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 3, mechine 2 send request vote to machine 0
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 3, mechine 2 send request vote to machine 6
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 3, mechine 2 send request vote to machine 1
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 3, mechine 2 send request vote to machine 3
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 3, mechine 2 send request vote to machine 4
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 3, mechine 2 send request vote to machine 5
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 3, machine 4 update state from 1 to 0
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 3, machine 5 update state from 1 to 0
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 3, mechine 5 voted to machine 2
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 3, mechine 4 voted to machine 2
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 3, machine 0 update state from 0 to 1
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 3, machine 4 update state from 0 to 1
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 3, machine 3 update state from 0 to 1
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 3, machine 6 update state from 0 to 1
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 3, machine 1 update state from 0 to 1
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).ticker] [info] 0 starts election
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 4, mechine 0 send request vote to machine 6
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 4, mechine 0 send request vote to machine 3
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 4, mechine 0 send request vote to machine 1
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 4, mechine 0 send request vote to machine 2
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 4, mechine 0 send request vote to machine 4
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 4, mechine 0 send request vote to machine 5
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 4, machine 6 update state from 1 to 0
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 4, machine 3 update state from 1 to 0
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 4, machine 1 update state from 1 to 0
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 4, machine 2 update state from 1 to 0
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 4, machine 4 update state from 1 to 0
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 4, mechine 6 voted to machine 0
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 4, mechine 3 voted to machine 0
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 4, mechine 1 voted to machine 0
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 4, mechine 2 voted to machine 0
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 4, mechine 4 voted to machine 0
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 4, machine 4 update state from 0 to 1
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 4, machine 2 update state from 0 to 1
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 4, machine 5 update state from 0 to 1
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).ticker] [info] 2 starts election
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 5, mechine 2 send request vote to machine 6
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 5, mechine 2 send request vote to machine 3
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 5, mechine 2 send request vote to machine 0
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 5, mechine 2 send request vote to machine 1
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 5, mechine 2 send request vote to machine 4
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).startElection.func1] [info] In term 5, mechine 2 send request vote to machine 5
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 5, machine 0 update state from 1 to 0
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 5, machine 4 update state from 1 to 0
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 5, machine 5 update state from 1 to 0
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 5, mechine 0 voted to machine 2
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] >>>>>>>
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 5, mechine 5 voted to machine 2
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).RequestVote] [Info] In term 5, mechine 4 voted to machine 2
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 5, machine 5 update state from 0 to 1
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 5, machine 6 update state from 0 to 1
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 5, machine 5 update state from 1 to 2
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).ticker] [info] 5 win election!
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 5, machine 6 update state from 1 to 0
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).updateState] [Info] In term 5, machine 2 update state from 1 to 2
+[40458-03-04 03:58:52] [Func 6.5840/raft.(*Raft).ticker] [info] 2 win election!

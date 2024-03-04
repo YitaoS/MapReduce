@@ -314,18 +314,20 @@ func (rf *Raft) ticker() {
 				rf.mu.Unlock()
 			}
 		case STATE_CANDIDATE:
-			rf.mu.Lock()
 			select {
 			case <-rf.heartBeat:
+				rf.mu.Lock()
 				rf.updateState(STATE_FOLLOWER)
+				defer rf.mu.Unlock()
 			case <-time.After(randTime()):
 				getLogger().Log(fmt.Sprintf("[info] %d starts election", rf.me))
 				rf.startElection()
 			case <-rf.winElect:
+				rf.mu.Lock()
 				rf.updateState(STATE_LEADER)
+				rf.mu.Unlock()
 				getLogger().Log(fmt.Sprintf("[info] %d win election!", rf.me))
 			}
-			rf.mu.Unlock()
 		case STATE_LEADER:
 			select {
 			case <-time.After(120 * time.Microsecond):
@@ -404,23 +406,23 @@ func (rf *Raft) startElection() {
 }
 
 func (rf *Raft) boardcastAppendEntries() {
-	AppendEntriesFunc := func(server int) bool {
+	AppendEntriesFunc := func(server int) {
 		reply := AppendEntriesReply{}
-		rf.mu.Lock()
-		defer rf.mu.Unlock()
 		args := AppendEntriesArgs{Term: rf.currentTerm, LeaderId: rf.me}
 		if rf.state != STATE_LEADER {
-			return false
+			return
 		}
 		if rf.sendAppendEntries(server, &args, &reply) {
+			rf.mu.Lock()
+			defer rf.mu.Unlock()
+			if rf.state != STATE_LEADER || rf.currentTerm < reply.Term || rf.currentTerm != args.Term {
+				return
+			}
 			if rf.currentTerm > reply.Term {
 				rf.currentTerm = reply.Term
 				rf.updateState(STATE_FOLLOWER)
-			} else {
-				return true
 			}
 		}
-		return false
 	}
 	for i := range rf.peers {
 		if i == rf.me {
@@ -428,11 +430,7 @@ func (rf *Raft) boardcastAppendEntries() {
 		}
 
 		go func(server int) {
-			for {
-				if !AppendEntriesFunc(server) {
-					break
-				}
-			}
+			AppendEntriesFunc(server)
 		}(i)
 	}
 }
@@ -463,10 +461,12 @@ func (rf *Raft) updateState(state int32) {
 	switch state {
 	case STATE_FOLLOWER:
 		rf.state = STATE_FOLLOWER
+		rf.votedFor = -1
 	case STATE_CANDIDATE:
 		rf.state = STATE_CANDIDATE
 	case STATE_LEADER:
 		rf.state = STATE_LEADER
+		rf.boardcastAppendEntries()
 	default:
 		getLogger().Log(fmt.Sprintf("[Error] unknown state!%d \nCurrent Term %d Current Machine %d Current State %d", state, rf.currentTerm, rf.me, rf.state))
 		os.Exit(1)
@@ -476,5 +476,5 @@ func (rf *Raft) updateState(state int32) {
 
 func randTime() time.Duration {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	return time.Microsecond * time.Duration((r.Intn(150) + 400))
+	return time.Microsecond * time.Duration((r.Intn(400) + 1800))
 }
